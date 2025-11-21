@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import glob
 import os
+from scipy.signal import fftconvolve
 
 def apply_loose_fit(data_array, window_size=5):
     """
@@ -78,26 +79,33 @@ def _ricker_wavelet(points, a):
   
     return A * mod * gauss
 
-def get_ricker_features(data, scales=np.arange(1, 64)):
+def get_ricker_features_fast(data, scales=np.arange(1, 64)):
     """
-    Performs Continuous Wavelet Transform (CWT) using Ricker.
-    Returns a 2D Spectrogram (Scales x Time).
+    FFT-based Continuous Wavelet Transform (CWT) using Ricker.
     """
-    output = np.zeros((len(scales), len(data)))
+    n_points = len(data)
+    n_scales = len(scales)
     
+    # pre-allocate output
+    output = np.zeros((n_scales, n_points))
+    
+    # use fftconvolve
     for idx, width in enumerate(scales):
-        # create wavelet kernel for this scale
-        # width * 10 ensures we capture the tails of the hat
-        # if the ricker is too large, its area won't be zero in the window
-        # we will get artifacts in the corner which will not affect 
-        # training but will look rather stupid
-        # this is one of the limitations of using the ricker in this sliding method
-        # the CNN will have to learn to ignore this with training
-        # which is feasible as it is supervised
-        num_points = min(10 * width, len(data))
-        wavelet_data = _ricker_wavelet(num_points, width)
+        # create kernel
+        # ensure kernel is odd length for perfect centering
+        len_wavelet = min(10 * width, n_points)
+        if len_wavelet % 2 == 0: len_wavelet += 1
+            
+        A = 2 / (np.sqrt(3 * width) * (np.pi**0.25))
+        wsq = width**2
+        vec = np.arange(0, len_wavelet) - (len_wavelet - 1.0) / 2
+        xsq = vec**2
+        mod = (1 - xsq / wsq)
+        gauss = np.exp(-xsq / (2 * wsq))
+        wavelet = A * mod * gauss
         
-        # convolve (mode='same' keeps output length equal to input)
-        output[idx, :] = np.convolve(data, wavelet_data, mode='same')
+        # FFT convolve is significantly faster for large windows
+        # mode='same' handles the padding/centering
+        output[idx, :] = fftconvolve(data, wavelet, mode='same')
         
     return np.abs(output)
