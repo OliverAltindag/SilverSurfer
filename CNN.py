@@ -3,7 +3,7 @@ from tensorflow.keras.layers import (
     Input, Conv2D, MaxPooling2D, UpSampling2D, 
     Concatenate, BatchNormalization, Dropout, 
     GlobalAveragePooling2D, Dense, Activation,
-    Conv2DTranspose, Add, Multiply
+    Conv2DTranspose, Add, Multiply, Reshape
 )
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
@@ -27,6 +27,9 @@ def ricker_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
     x = Conv2D(64, (3, 3), padding='same', activation='relu',
                kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv2')(x)
     x = BatchNormalization(name=f'{prefix}_bn2')(x)
+    
+    # POOLING: This reduces time dimension by half. 
+    # The Haar branch must match this reduction.
     x = MaxPooling2D((2, 2), name=f'{prefix}_pool1')(x)
     x = Dropout(dropout_rate, name=f'{prefix}_dropout2')(x)
     
@@ -50,16 +53,15 @@ def haar_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
     x = BatchNormalization(name=f'{prefix}_bn1')(x)
     x = Dropout(dropout_rate, name=f'{prefix}_dropout1')(x)
     
-    # Temporal refinement
-    x = Conv2D(32, (1, 3), padding='same', activation='relu',
-               kernel_regularizer=l2_reg, name=f'{prefix}_conv2')(x)
+    # temporal refinement
+    # we must downsample Time to match the Ricker MaxPooling.
+    x = Conv2D(32, (1, 3), padding='same', strides=(1, 2), activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv2')(x)
     x = BatchNormalization(name=f'{prefix}_bn2')(x)
     x = Dropout(dropout_rate, name=f'{prefix}_dropout2')(x)
     
-    # Upsample to match Ricker feature map dimensions
-    x = UpSampling2D((2, 1), name=f'{prefix}_upsample')(x)  # Scale up in time dimension
-    
     # Final conv to match channel dimensions
+    # This tensor is now (Scales=1, Time/2, 64)
     x = Conv2D(64, (1, 1), activation='relu',
                kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv3')(x)
     
@@ -71,8 +73,8 @@ def haar_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
 
 # here is where the model is defined
 def create_multi_input_switchback_cnn(
-    ricker_shape,  # (n_scales, time_length, 1) - for both Br and Vr
-    haar_shape,    # (time_length, 1) - but will be expanded to 2D
+    ricker_shape,   # (n_scales, time_length, 1) - for both Br and Vr
+    haar_shape,     # (time_length, 1) - but will be expanded to 2D
     dropout_rate=0.3,
     l2_reg=1e-4
 ):
@@ -91,11 +93,10 @@ def create_multi_input_switchback_cnn(
     ricker_vr_input = Input(shape=ricker_shape, name='ricker_vr_input')
     haar_br_input = Input(shape=haar_shape, name='haar_br_input')
     
-    # expand Haar to 2D for CNN processing (match Ricker dimensions)
-    # use lambda layer to expand: (time_len, 1) -> (time_len, 1, 1) -> (n_scales, time_len, 1)
-    # replicate along scale dimension to match Ricker shape
-    haar_expanded = tf.expand_dims(haar_br_input, axis=1)  # Add scale dimension
-    haar_expanded = tf.repeat(haar_expanded, repeats=ricker_shape[0], axis=1)  # Repeat to match scales
+    # expand Haar to 2D for CNN processing
+    # reshaping to (1, Time, 1) allows us to use standard Conv2D layers
+    # broadcasting later handles the scale dimension matching
+    haar_reshaped = Reshape((1, haar_shape[0], 1))(haar_br_input)
     
     # feature extraction branch for Ricker Br
     ricker_br_features = ricker_input_branch(ricker_br_input, dropout_rate, l2_reg, 'ricker_br')
@@ -104,7 +105,7 @@ def create_multi_input_switchback_cnn(
     ricker_vr_features = ricker_input_branch(ricker_vr_input, dropout_rate, l2_reg, 'ricker_vr')
     
     # feature extraction branch for Haar Br (temporal precision usage only)
-    haar_features = haar_input_branch(haar_expanded, dropout_rate, l2_reg, 'haar_br')
+    haar_features = haar_input_branch(haar_reshaped, dropout_rate, l2_reg, 'haar_br')
     
     # cross-channel attention
     ## Ricker channels detect, Haar provides timing
@@ -112,6 +113,7 @@ def create_multi_input_switchback_cnn(
     combined_ricker = Add(name='combined_ricker_detection')([ricker_br_features, ricker_vr_features])
     
     # apply attention from Haar timing to Ricker detection
+    # This works via Broadcasting: Haar (1, Time/2, 64) applies across all Ricker scales
     timing_attention = Multiply(name='timing_attention')([
         combined_ricker, 
         haar_features
@@ -131,7 +133,7 @@ def create_multi_input_switchback_cnn(
     # output layer for switchback detection
     # use sigmoid for binary detection at each time step
     detection_output = Conv2D(1, (1, 1), activation='sigmoid', 
-                             name='switchback_detection')(x)
+                              name='switchback_detection')(x)
     
     # global detection output (for overall event presence)
     global_detection = GlobalAveragePooling2D(name='global_detection_pool')(detection_output)
