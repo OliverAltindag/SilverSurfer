@@ -1,3 +1,9 @@
+import numpy as np
+import pandas as pd
+import glob
+import os
+from datetime import datetime
+
 def apply_loose_fit(data_array, window_size=5):
     """
     Cleans velocity data using a Median Filter to ignore outliers (rogue dots)
