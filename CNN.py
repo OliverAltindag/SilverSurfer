@@ -9,6 +9,67 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
 
 
+# helpers for the model, need to be defined BEFORE the model
+# may be moved to make this look prettier
+def ricker_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
+    """
+    Processing branch for Ricker wavelet spectrograms (detection)
+    """
+    # first conv block
+    # capture multi-scale patterns
+    x = Conv2D(32, (3, 3), padding='same', activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv1')(input_tensor)
+    x = BatchNormalization(name=f'{prefix}_bn1')(x)
+    x = Dropout(dropout_rate, name=f'{prefix}_dropout1')(x)
+    
+    # second conv block
+    # refine scale-time relationships
+    x = Conv2D(64, (3, 3), padding='same', activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv2')(x)
+    x = BatchNormalization(name=f'{prefix}_bn2')(x)
+    x = MaxPooling2D((2, 2), name=f'{prefix}_pool1')(x)
+    x = Dropout(dropout_rate, name=f'{prefix}_dropout2')(x)
+    
+    # third conv block
+    # deeper feature extraction
+    x = Conv2D(64, (3, 3), padding='same', activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv3')(x)
+    x = BatchNormalization(name=f'{prefix}_bn3')(x)
+    x = Dropout(dropout_rate, name=f'{prefix}_dropout3')(x)
+    
+    return x
+
+def haar_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
+    """
+    Processing branch for Haar wavelet (timing precision)
+    Emphasizes temporal localization over scale complexity
+    """
+    # Focus on temporal precision with 1x1 convs along time axis
+    x = Conv2D(16, (1, 3), padding='same', activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv1')(input_tensor)
+    x = BatchNormalization(name=f'{prefix}_bn1')(x)
+    x = Dropout(dropout_rate, name=f'{prefix}_dropout1')(x)
+    
+    # Temporal refinement
+    x = Conv2D(32, (1, 3), padding='same', activation='relu',
+               kernel_regularizer=l2_reg, name=f'{prefix}_conv2')(x)
+    x = BatchNormalization(name=f'{prefix}_bn2')(x)
+    x = Dropout(dropout_rate, name=f'{prefix}_dropout2')(x)
+    
+    # Upsample to match Ricker feature map dimensions
+    x = UpSampling2D((2, 1), name=f'{prefix}_upsample')(x)  # Scale up in time dimension
+    
+    # Final conv to match channel dimensions
+    x = Conv2D(64, (1, 1), activation='relu',
+               kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv3')(x)
+    
+    # Sigmoid to create attention mask - highlights precise timing locations
+    timing_mask = Activation('sigmoid', name=f'{prefix}_timing_attention')(x)
+    
+    return timing_mask
+
+
+# here is where the model is defined
 def create_multi_input_switchback_cnn(
     ricker_shape,  # (n_scales, time_length, 1) - for both Br and Vr
     haar_shape,    # (time_length, 1) - but will be expanded to 2D
