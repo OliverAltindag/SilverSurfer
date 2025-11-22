@@ -13,6 +13,9 @@ def prepare_cnn_inputs(
     """
     if time_length is None:
         time_length = len(haar_br_data)
+
+    if time_length % 2 != 0:
+        time_length -= 1
     
     # ensure ricker data has correct time dimension
     if ricker_br_data.shape[1] != time_length:
