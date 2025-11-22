@@ -15,8 +15,12 @@ def convert_cdf_time(raw_times):
     # TT2000 base is 2000-01-01 12:00:00
     base_time = pd.Timestamp("2000-01-01 12:00:00")
     raw_arr = np.array(raw_times, dtype='int64')
-  
-    return base_time + pd.to_timedelta(raw_arr, unit='ns')
+    
+    # apply the Leap Second Correction, if not the trianing labels will be off 
+    # TT2000 is currently ~69.184 seconds AHEAD of UTC 
+    # does not need to be perfection but close enough
+    tt2000_dt = base_time + pd.to_timedelta(raw_arr, unit='ns')
+    return tt2000_dt - pd.Timedelta(seconds=69.184)
 
 def load_psp_data(data_folder, target_date, mag_chunk):
     """
@@ -53,7 +57,7 @@ def load_psp_data(data_folder, target_date, mag_chunk):
         print(f"No MAG file found for {target_date} (Chunk {mag_chunk})")
 
     # loads in the plasma velocity
-    # includes fallback fro missing/corruped files
+    # includes fallback for missing/corruped files
     spc_data = None
     if spc_files:
         print(f"Found SPC file: {os.path.basename(spc_files[0])}")
