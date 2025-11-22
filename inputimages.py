@@ -40,7 +40,7 @@ def prepare_cnn_inputs(
     
     # add channel dimensions for CNN
     ricker_br_input = ricker_br_data.reshape(1, ricker_br_data.shape[0], ricker_br_data.shape[1], 1)
-    ricker_vr_input = ricker_vr_data.reshape(1, ricker_vr_data.shape[0], ricker_vr_vr.shape[1], 1)
+    ricker_vr_input = ricker_vr_data.reshape(1, ricker_vr_data.shape[0], ricker_vr_data.shape[1], 1)
     haar_br_input = haar_br_data.reshape(1, time_length, 1)
     
     return ricker_br_input, ricker_vr_input, haar_br_input
