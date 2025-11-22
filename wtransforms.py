@@ -108,4 +108,4 @@ def get_ricker_features_fast(data, scales=np.arange(1, 64)):
         # mode='same' handles the padding/centering
         output[idx, :] = fftconvolve(data, wavelet, mode='same')
         
-    return np.abs(output)
+    return output
