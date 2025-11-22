@@ -96,7 +96,7 @@ def create_multi_input_switchback_cnn(
     # expand Haar to 2D for CNN processing
     # reshaping to (1, Time, 1) allows us to use standard Conv2D layers
     # broadcasting later handles the scale dimension matching
-    haar_reshaped = Reshape((1, haar_shape[0], 1))(haar_br_input)
+    haar_reshaped = Reshape((1, -1, 1))(haar_br_input)
     
     # feature extraction branch for Ricker Br
     ricker_br_features = ricker_input_branch(ricker_br_input, dropout_rate, l2_reg, 'ricker_br')
