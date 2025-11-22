@@ -29,6 +29,14 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
 
     # apply Robust Fit to Synced V_R
     v_clean = wt.apply_loose_fit(v_signal_synced)
+
+    # normalizes the data so the model cna comprehend the gradients better
+    # there are no disadvantages to this scientifically
+    v_mean = np.nanmean(v_clean)
+    v_std = np.nanstd(v_clean)
+    if v_std < 1e-5: v_std = 1.0 # prevent divide by zero on flat lines
+    # returns the normalized values
+    v_clean = (v_clean - v_mean) / v_std
     
     # B_R: Get B_R and normalize it to unit vector for CNN
     # this is CRITICAl for the information to be physically correct
