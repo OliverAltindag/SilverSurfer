@@ -44,6 +44,10 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
     # truncate the start of the shortest clean signal and match all arrays
     # shae but neccesary evil
     min_len = min(len(B_normalized), len(v_clean))
+
+    # ensures they are even
+    if min_len % 2 != 0:
+        min_len -= 1
     
     # truncate all arrays to the smallest common length
     B_final = B_normalized[:min_len]
