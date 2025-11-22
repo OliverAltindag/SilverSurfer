@@ -50,4 +50,9 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
     V_final = v_clean[:min_len]
     T_final = t_mag[:min_len]
 
-    return T_final, B_final, V_final
+    # puts these into wavelet form using the fucntions previously outlined
+    ricker_br = wt.get_ricker_features_fast(B_final, scales=np.arange(1, 65))
+    ricker_vr = wt.get_ricker_features_fast(V_final, scales=np.arange(1, 65))
+    haar_br = wt.get_haar_features(B_final)
+
+    return ricker_br, ricker_vr, haar_br, T_final
