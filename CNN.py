@@ -130,10 +130,21 @@ def create_multi_input_switchback_cnn(
     x = BatchNormalization(name='final_bn2')(x)
     x = Dropout(dropout_rate, name='final_dropout2')(x)
     
-    # output layer for switchback detection
-    # use sigmoid for binary detection at each time step
-    detection_output = Conv2D(1, (1, 1), activation='sigmoid', 
-                              name='switchback_detection')(x)
+    # use a 1x1 Conv to learn HOW to combine scales, rather than just averaging
+    x = Conv2D(1, (ricker_shape[0] // 2, 1), padding='valid', activation='relu', name='squash_scales')(x)
+    # shape: (Batch, 1, Time/2, 1)
+
+    # upsample Time (Time/2 -> Time)
+    # This undoes the MaxPooling from earlier so it matches labels (1D)
+    x = UpSampling2D(size=(1, 2), name='restore_time_resolution')(x)
+    # shape: (Batch, 1, Time, 1)
+
+    # final Sigmoid for detection
+    detection_output = Conv2D(1, (1, 1), activation='sigmoid', name='switchback_detection')(x)
+    
+    # reshape to remove the empty dimension (Batch, Time, 1)
+    # The -1 tells it to keep the Time dimension dynamic
+    detection_output = Reshape((-1, 1), name='final_flat_output')(detection_output)
     
     # global detection output (for overall event presence)
     global_detection = GlobalAveragePooling2D(name='global_detection_pool')(detection_output)
