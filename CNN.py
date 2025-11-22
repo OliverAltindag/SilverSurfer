@@ -62,7 +62,7 @@ def haar_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
     
     # Final conv to match channel dimensions
     # This tensor is now (Scales=1, Time/2, 64)
-    x = Conv2D(64, (1, 1), activation='relu',
+    x = Conv2D(64, (1, 1), activation='linear', 
                kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv3')(x)
     
     # Sigmoid to create attention mask - highlights precise timing locations
