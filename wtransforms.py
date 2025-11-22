@@ -14,7 +14,7 @@ def apply_loose_fit(data_array, window_size=5):
     # filter instrument errors (-1e31)
     # which is a manually added erorr when data is missing
     series[series < -10000] = np.nan
-    series[series > -10000] = np.nan
+    series[series > 10000] = np.nan
     
     # median filtering
     # min_periods=3 ensures that isolated dots
