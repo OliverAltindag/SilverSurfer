@@ -51,16 +51,18 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
     # The convolution and MRA math requires the input signal to have the same length
     # truncate the start of the shortest clean signal and match all arrays
     # shae but neccesary evil
-    min_len = min(len(B_normalized), len(v_clean))
-
-    # ensures they are even
-    if min_len % 2 != 0:
-        min_len -= 1
+    # create DataFrames to align exact timestamps
+    df_B = pd.DataFrame({'B': B_normalized}, index=t_mag)
+    df_V = pd.DataFrame({'V': v_clean}, index=t_mag_dt) # t_mag_dt calculated earlier
     
-    # truncate all arrays to the smallest common length
-    B_final = B_normalized[:min_len]
-    V_final = v_clean[:min_len]
-    T_final = t_mag[:min_len]
+    # inner Join on Index (Timestamps)
+    # Tthis drops points where EITHER sensor is missing, ensuring strict alignment
+    df_merged = df_B.join(df_V, how='inner', lsuffix='_B', rsuffix='_V')
+    
+    # extract perfectly aligned arrays
+    B_final = df_merged['B'].values
+    V_final = df_merged['V'].values
+    T_final = df_merged.index.values # this is now the Master Time for Label Generation
 
     # puts these into wavelet form using the fucntions previously outlined
     ricker_br = wt.get_ricker_features_fast(B_final, scales=np.arange(1, 65))
