@@ -32,11 +32,12 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
 
     # normalizes the data so the model cna comprehend the gradients better
     # there are no disadvantages to this scientifically
-    v_mean = np.nanmean(v_clean)
-    v_std = np.nanstd(v_clean)
-    if v_std < 1e-5: v_std = 1.0 # prevent divide by zero on flat lines
-    # returns the normalized values
-    v_clean = (v_clean - v_mean) / v_std
+    # should be strong enough to resist influence by switchbacks
+    v_median = np.nanmedian(v_clean)
+    q75, q25 = np.percentile(v_clean, [75 ,25])
+    iqr = q75 - q25
+    if iqr < 1e-5: iqr = 1.0
+    v_clean = (v_clean - v_median) / iqr
     
     # B_R: Get B_R and normalize it to unit vector for CNN
     # this is CRITICAl for the information to be physically correct
