@@ -25,13 +25,13 @@ def prepare_cnn_inputs(
         else:
             # Pad with zeros
             pad_width = time_length - ricker_br_data.shape[1]
-            ricker_br_data = np.pad(ricker_br_data, ((0,0), (0, pad_width)), mode='constant')
+            ricker_br_data = np.pad(ricker_br_data, ((0,0), (0, pad_width)), mode='edge')
     if ricker_vr_data.shape[1] != time_length:
         if ricker_vr_data.shape[1] > time_length:
             ricker_vr_data = ricker_vr_data[:, :time_length]
         else:
             pad_width = time_length - ricker_vr_data.shape[1]
-            ricker_vr_data = np.pad(ricker_vr_data, ((0,0), (0, pad_width)), mode='constant')
+            ricker_vr_data = np.pad(ricker_vr_data, ((0,0), (0, pad_width)), mode='edge')
     
     # Ensure haar data has correct time dimension
     if len(haar_br_data) != time_length:
@@ -39,7 +39,7 @@ def prepare_cnn_inputs(
             haar_br_data = haar_br_data[:time_length]
         else:
             pad_width = time_length - len(haar_br_data)
-            haar_br_data = np.pad(haar_br_data, (0, pad_width), mode='constant')
+            haar_br_data = np.pad(haar_br_data, (0, pad_width), mode='edge')
     
     # add channel dimensions for CNN
     ricker_br_input = ricker_br_data.reshape(1, ricker_br_data.shape[0], ricker_br_data.shape[1], 1)
@@ -88,13 +88,13 @@ def prepare_batch_inputs(
                 ricker_br_sample = ricker_br_sample[:, :time_length]
             else:
                 pad_width = time_length - ricker_br_sample.shape[1]
-                ricker_br_sample = np.pad(ricker_br_sample, ((0,0), (0, pad_width)), mode='constant')
+                ricker_br_sample = np.pad(ricker_br_sample, ((0,0), (0, pad_width)), mode='edge')
         if ricker_vr_sample.shape[1] != time_length:
             if ricker_vr_sample.shape[1] > time_length:
                 ricker_vr_sample = ricker_vr_sample[:, :time_length]
             else:
                 pad_width = time_length - ricker_vr_sample.shape[1]
-                ricker_vr_sample = np.pad(ricker_vr_sample, ((0,0), (0, pad_width)), mode='constant')
+                ricker_vr_sample = np.pad(ricker_vr_sample, ((0,0), (0, pad_width)), mode='edge')
 
         # haar
         if len(haar_br_sample) != time_length:
@@ -102,7 +102,7 @@ def prepare_batch_inputs(
                 haar_br_sample = haar_br_sample[:time_length]
             else:
                 pad_width = time_length - len(haar_br_sample)
-                haar_br_sample = np.pad(haar_br_sample, (0, pad_width), mode='constant')
+                haar_br_sample = np.pad(haar_br_sample, (0, pad_width), mode='edge')
         
         # Store in batch arrays
         ricker_br_inputs[i] = ricker_br_sample.reshape(n_scales, time_length, 1)
