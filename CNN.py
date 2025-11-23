@@ -2,8 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.layers import (
     Input, Conv2D, MaxPooling2D, UpSampling2D, 
     Concatenate, BatchNormalization, Dropout, 
-    GlobalAveragePooling2D, Dense, Activation,
-    Conv2DTranspose, Add, Multiply, Reshape
+    GlobalAveragePooling2D, GlobalAveragePooling1D, GlobalMaxPooling1D, 
+    Dense, Activation,Conv2DTranspose, Add, Multiply, Reshape
 )
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
@@ -137,18 +137,20 @@ def create_multi_input_switchback_cnn(
     # upsample Time (Time/2 -> Time)
     # This undoes the MaxPooling from earlier so it matches labels (1D)
     x = UpSampling2D(size=(1, 2), name='restore_time_resolution')(x)
-    # shape: (Batch, 1, Time, 1)
+    # branch off the features BEFORE the final sigmoid.
+    # reshape to (Batch, Time, Features) so 1D pooling works.
+    features_flat = Reshape((-1, 1), name='features_for_global')(x)
+    
+    # Use Max Pooling: If any part of the signal is strong, the whole window is positive.
+    global_pool = GlobalMaxPooling1D(name='global_max_pool')(features_flat)
+    global_output = Dense(1, activation='sigmoid', name='global_switchback_presence')(global_pool)
 
+    # local detection
     # final Sigmoid for detection
     detection_output = Conv2D(1, (1, 1), activation='sigmoid', name='switchback_detection')(x)
     
     # reshape to remove the empty dimension (Batch, Time, 1)
-    # The -1 tells it to keep the Time dimension dynamic
     detection_output = Reshape((-1, 1), name='final_flat_output')(detection_output)
-    
-    # global detection output (for overall event presence)
-    global_detection = GlobalAveragePooling2D(name='global_detection_pool')(detection_output)
-    global_output = Dense(1, activation='sigmoid', name='global_switchback_presence')(global_detection)
     
     # create the model
     model = Model(
