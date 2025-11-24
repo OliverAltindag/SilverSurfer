@@ -79,7 +79,7 @@ def _ricker_wavelet(points, a):
   
     return A * mod * gauss
 
-def get_ricker_features_fast(data, scales=np.arange(1, 64)):
+def get_ricker_features_fast(data, scales=np.arange(1, 65)):
     """
     FFT-based Continuous Wavelet Transform (CWT) using Ricker.
     """
