@@ -158,5 +158,29 @@ def create_multi_input_switchback_cnn(
         outputs=[detection_output, global_output],
         name='multi_input_switchback_cnn'
     )
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
+        
+        # define the loss function for each output name, as it needs to optimize correctly
+        loss={
+            'final_flat_output': 'binary_crossentropy',       # Local detection
+            'global_switchback_presence': 'binary_crossentropy' # Global flag
+        },
+        
+        # define the weights
+        # is 5x more important than being right about the global flag
+        # kinda made a guess here
+        loss_weights={
+            'final_flat_output': 5.0, 
+            'global_switchback_presence': 0.2 
+        },
+        
+        # track metrics
+        metrics={
+            'final_flat_output': 'accuracy', 
+            'global_switchback_presence': 'accuracy'
+        }
+    )
     
     return model
