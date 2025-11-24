@@ -57,6 +57,9 @@ def prepare_batch_inputs(
     """
     Prepares batch of wavelet-transformed data for CNN input
     """
+    if time_length % 2 != 0:
+    time_length -= 1
+    
     # same reasoning as the function above
     if time_length is None:
         time_length = len(haar_br_batch[0]) if isinstance(haar_br_batch, list) else haar_br_batch.shape[1]
