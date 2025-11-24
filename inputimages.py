@@ -58,7 +58,7 @@ def prepare_batch_inputs(
     Prepares batch of wavelet-transformed data for CNN input
     """
     if time_length % 2 != 0:
-    time_length -= 1
+        time_length -= 1
     
     # same reasoning as the function above
     if time_length is None:
