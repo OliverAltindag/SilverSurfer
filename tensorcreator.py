@@ -65,6 +65,12 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
     V_final = df_merged['V'].values
     T_final = df_merged.index.values # this is now the Master Time for Label Generation
 
+    # Downsample by 10 bc was ridiculously fine before
+    # Increases window context to ~4.3s and speeds up training 10x
+    B_final = B_final[::10]
+    V_final = V_final[::10]
+    T_final = T_final[::10]
+
     # puts these into wavelet form using the fucntions previously outlined
     ricker_br = wt.get_ricker_features_fast(B_final, scales=np.arange(1, 65))
     ricker_vr = wt.get_ricker_features_fast(V_final, scales=np.arange(1, 65))
