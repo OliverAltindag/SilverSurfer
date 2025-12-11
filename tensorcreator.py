@@ -67,9 +67,9 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
 
     # Downsample by 10 bc was ridiculously fine before
     # Increases window context to ~4.3s and speeds up training 10x
-    B_final = B_final[::10]
-    V_final = V_final[::10]
-    T_final = T_final[::10]
+    B_final = B_final[::20]
+    V_final = V_final[::20]
+    T_final = T_final[::20]
 
     # puts these into wavelet form using the fucntions previously outlined
     ricker_br = wt.get_ricker_features_fast(B_final, scales=np.arange(1, 65))
