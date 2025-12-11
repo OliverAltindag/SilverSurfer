@@ -172,8 +172,8 @@ def create_multi_input_switchback_cnn(
         # is 5x more important than being right about the global flag
         # kinda made a guess here
         loss_weights={
-            'final_flat_output': 5.0, 
-            'global_switchback_presence': 0.2 
+            'final_flat_output': 1.0, 
+            'global_switchback_presence': 1.0
         },
         
         # track metrics
