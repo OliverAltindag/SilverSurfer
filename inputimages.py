@@ -112,7 +112,7 @@ def prepare_batch_inputs(
                 pad_width = time_length - len(haar_br_sample)
                 haar_br_sample = np.pad(haar_br_sample, (0, pad_width), mode='edge')
         
-        # Store in batch arrays
+        # store in batch arrays
         ricker_br_inputs[i] = ricker_br_sample.reshape(n_scales, time_length, 1)
         ricker_vr_inputs[i] = ricker_vr_sample.reshape(n_scales, time_length, 1)
         haar_br_inputs[i] = haar_br_sample.reshape(time_length, 1)
