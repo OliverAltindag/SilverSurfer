@@ -54,14 +54,14 @@ def create_sliding_windows(
         batch_r_br[idx, :, :, 0] = ricker_br[:, start:end]
         batch_r_vr[idx, :, :, 0] = ricker_vr[:, start:end]
         batch_h_br[idx, :, 0] = haar_br[start:end]
-      # labels for if training
+        # labels for if training
         if labels is not None:
             batch_lbls[idx, :, 0] = labels[start:end, 0]
         idx += 1
         
     # generate global labels
     # Logic: If the local mask has a switchback (1) anywhere in the window,
-    # the Global Label for that window is 1
+    # the global label for that window is 1
     # lowkey didnt work terribly
     if labels is not None:
         # check if ANY value in the window is > 0.5
