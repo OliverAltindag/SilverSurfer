@@ -10,10 +10,12 @@ def generate_labels_from_csv(T_final, csv_file_path, edge_width_indices=45):
     Short events: Labeled entirely as 1.
     Long events: Only the Start and End regions are labeled 1. 
     The "Steady State" middle is left as 0 to match Ricker/Haar wavelet blindness.
-    This is how the model was made, bc of the bracketing.
+    This is how the model was made, bc of the bracketing of the Haar and multiplication gate.
       
     edge_width_indices: Number of steps to label as '1' from the edge inward.
                         Set to approx 1/3 of WINDOW_SIZE
+                        A bold guess that im hoping works well enough.
+                        IoU will be straight cheeks, but stuff will be detected.
     """
     # just check if its even there
     if not os.path.exists(csv_file_path):
@@ -64,7 +66,7 @@ def generate_labels_from_csv(T_final, csv_file_path, edge_width_indices=45):
             # 30% of the event duration
             # but cap it at the fixed 'edge_width_indices'
             # to prevent labeling the "blind middle" of massive events
-            # this is dynamic
+            # this is dynamic-ish
             dynamic_width = int(duration * 0.30)
             use_width = min(dynamic_width, edge_width_indices)
             
