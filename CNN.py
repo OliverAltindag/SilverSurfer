@@ -13,7 +13,6 @@ import tensorflow.keras.backend as K
 # custum focal loss definiton
 # the model was crappily guessing bc of the varying background levels
 # this helped to isolate the events
-
 def binary_focal_loss(gamma=2., alpha=0.25):
     """
     Returns
@@ -23,8 +22,16 @@ def binary_focal_loss(gamma=2., alpha=0.25):
         over the batch.
     """
     def focal_loss_fixed(y_true, y_pred):
+        # the focal loss model
+        # want to calculate the loss for the Switchbacks
+        # y_true is 1, keep the prediction (y_pred)
+        # If y_true is 0, replace it with 1.0
+        # effectively zeroes out this term for the background pixels
         pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+        # basically the opposite
+        # effectively zeroes out this term for the switchback pixels
         pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+        # missed events and false flags
         loss = -K.sum(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1 + K.epsilon())) \
                -K.sum((1-alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0 + K.epsilon()))
         return loss / tf.cast(tf.size(y_true), tf.float32)
@@ -38,11 +45,16 @@ def dice_loss(y_true, y_pred):
     tf.Tensor
         Scalar loss value ranging from 0 (perfect overlap) to 1 (no overlap).
     """
+    # smooths so it doesnt nan out
     smooth = 1e-6
+    # convert the 2D time/batch map into a single 1D vector
+    # only cares about statistical overlap
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
+    # multiply by ground probability
     intersection = K.sum(y_true_f * y_pred_f)
     score = (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    # bc they minimize need to do this
     return 1. - score
 
 # Combined Loss
@@ -55,8 +67,12 @@ def combined_loss(alpha=0.25, gamma=2.0):
         of the two losses.
     """
     def loss_fn(y_true, y_pred):
+        # the focal loss
         focal = binary_focal_loss(gamma=gamma, alpha=alpha)(y_true, y_pred)
+        # dice loss
         dice = dice_loss(y_true, y_pred)
+
+        # adds them together
         return focal + dice
     return loss_fn
 
@@ -114,6 +130,7 @@ def haar_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
                kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv3')(x)
     # the gate itself
     timing_mask = Activation('sigmoid', name=f'{prefix}_timing_attention')(x)
+    
     return timing_mask
 
 def create_multi_input_switchback_cnn(
@@ -127,7 +144,7 @@ def create_multi_input_switchback_cnn(
     Other methods were rather shite so improvised a bit.
     """
     
-    # Inputs
+    # inputs
     ricker_br_input = Input(shape=ricker_shape, name='ricker_br_input')
     ricker_vr_input = Input(shape=ricker_shape, name='ricker_vr_input')
     haar_br_input = Input(shape=haar_shape, name='haar_br_input')
@@ -145,7 +162,7 @@ def create_multi_input_switchback_cnn(
     # bang
     combined_ricker = Add(name='combined_ricker_detection')([ricker_br_features, ricker_vr_features])
     
-    # Upsample "Timing Attention" to match scales dimension
+    # upsample "Timing Attention" to match scales dimension
     # ricker_features: (Batch, Scales/2, Time/2, Filters)
     # haar_features:   (Batch, 1, Time/2, Filters)
     # moving on
@@ -155,7 +172,7 @@ def create_multi_input_switchback_cnn(
     # need matching channels for Multiply
     # combined_ricker (Batch, Scales/2, Time/2, 64)
     # haar_features_broadcasted (Batch, Scales/2, Time/2, 64)
-    # (Assuming haar_input_branch ends with 64 filters, which it does)
+    # (assuming haar_input_branch ends with 64 filters, which it does)
     
     # apply attention via Multiplication, bc it fails any other way 
     # and the whole point of the Haar is to do this
