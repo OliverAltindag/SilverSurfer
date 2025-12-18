@@ -13,7 +13,7 @@ import tensorflow.keras.backend as K
 # custum focal loss definiton
 # the model was crappily guessing bc of the varying background levels
 # this helped to isolate the events
-def binary_focal_loss(gamma=2., alpha=0.25):
+def binary_focal_loss(gamma=2.0, alpha=0.25):
     """
     Returns
     -------
