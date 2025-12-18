@@ -1,0 +1,1 @@
+This project is a wavelet-power deep learning model used for magnetic switchback edge detection. The model has currently been trained on only half of one data encounter, with the weights provided in the repo. The model will continue to be upgraded and will undergo further training; currently, it serves as a proof of concept and as a standalone architecture.
