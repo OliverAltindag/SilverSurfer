@@ -42,10 +42,12 @@ def create_feature_tensor(t_mag, b_rtn, t_spc, v_rtn, window_size=128):
     
     # HARD CLAMP: Ensure no value exceeds +/- 50 sigma 
     # really didnt want the training to blow up as I slept
-    # it didnt but got through a shocking 0.25 of one of 10+ encounters
+    # it didnt but got through a shocking 0.5 of one of 10+ encounters
+    # so currently more of a hypothetical good model
+    # sunject to change
     v_clean = np.clip(v_clean, -50.0, 50.0)
 
-    # B_R: Get B_R and normalize it to unit vector
+    # B_R: get B_R and normalize it to unit vector
     b_r_raw = b_rtn[:, 0]
     b_mag = np.linalg.norm(b_rtn, axis=1)
     # handle NaNs in B_Mag
