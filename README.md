@@ -2,7 +2,7 @@
 
 **SilverSurfer** is a Deep Learning framework designed to detect **Magnetic Switchbacks** (rapid polarity reversals) in solar wind data collected by NASA's *Parker Solar Probe (PSP)*.
 
-Unlike traditional threshold-based algorithms, SilverSurfer uses a **Physics-Informed CNN** that analyzes the **Alfvenicity** (correlation between Magnetic Field $B$ and Plasma Velocity $V$) to identify events. This allows it to detect a "Hidden Population" of linear Alfvenic pulses that standard catalogs miss.
+Unlike traditional threshold-based algorithms, SilverSurfer uses a **Physics-Informed CNN** that analyzes the **Alfvenicity** (correlation between Magnetic Field $B$ and Plasma Velocity $V$) to identify events. This allows it to detect a "Hidden Population" of switchbacks that standard thresholding catalogs miss.
 
 ## Key Features
 *   **Physics-Informed:** Learns the $B \propto V$ relationship, robust against noise.
