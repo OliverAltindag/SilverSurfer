@@ -9,8 +9,8 @@ def apply_loose_fit(data_array, window_size=7):
     Cleans data using a Median Filter to ignore outliers (rogue dots)
     and Linear Interpolation to bridge gaps.
     
-    Default window_size increased to 7 to handle clumps of error values
-    often seen during violent switchback events when training.
+    UPDATED: Default window_size increased to 7 to handle clumps of error values
+    often seen during violent switchback events.
     """
     series = pd.Series(data_array)
     
@@ -23,6 +23,7 @@ def apply_loose_fit(data_array, window_size=7):
     # median filtering
     # min_periods=3 ensures that isolated dots
     # are removed because they don't follow the true pattern 
+    # and are a matter of equipment recalibration
     v_median = series.rolling(window=window_size, center=True, min_periods=3).median()
     
     # bridge the gap, simple linear fit
@@ -34,10 +35,9 @@ def apply_loose_fit(data_array, window_size=7):
     
     # return numpy array, filling edges with 0 if necessary
     return v_smooth.fillna(0).values
-    
 def get_haar_features(data):
     """
-    Performs manual Haar MRA decomposition (ish) to find high frequency edges.
+    Performs manual Haar MRA decomposition to find high frequency edges.
     Returns the high frequency signal only, which will show a spike if present.
     """
     n = len(data)
@@ -65,12 +65,12 @@ def get_haar_features(data):
 
     # such pretty and short code
     return details
-    
+
 def _ricker_wavelet(points, a):
     """
-    Generates the Ricker to fit into the data
-    Similar to seismic data fitting.
-    Use sliding  window over the series data which should enable the 
+    Generates the Mexican Hat shape to fit into the data
+    Similar to seismic data fitting
+    We will slide a window over the series data which should enable the 
     wavelet to find the switchbacks peak
 
     insallah
@@ -84,13 +84,11 @@ def _ricker_wavelet(points, a):
     xsq = vec**2
     mod = (1 - xsq / wsq)
     gauss = np.exp(-xsq / (2 * wsq))
-  
     return A * mod * gauss
     
 def get_ricker_features_fast(data, scales=np.arange(1, 65)):
     """
-    FFT-based Continuous Wavelet Transform (CWT) using Ricker. 
-    Will make this bit more detailed in the future.
+    FFT-based Continuous Wavelet Transform (CWT) using Ricker.
     """
     n_points = len(data)
     n_scales = len(scales)
@@ -104,21 +102,16 @@ def get_ricker_features_fast(data, scales=np.arange(1, 65)):
         # ensure kernel is odd length for perfect centering
         len_wavelet = min(10 * width, n_points)
         if len_wavelet % 2 == 0: len_wavelet += 1
-
-        # normalization constant
+            
         A = 2 / (np.sqrt(3 * width) * (np.pi**0.25))
-        # constructs the domain (time vector)
         wsq = width**2
         vec = np.arange(0, len_wavelet) - (len_wavelet - 1.0) / 2
         xsq = vec**2
-        # ricker shape
         mod = (1 - xsq / wsq)
-        # gaussian shape
         gauss = np.exp(-xsq / (2 * wsq))
-        # combine
         wavelet = A * mod * gauss
         
-        # fft convolve is fast for large windows
+        # FFT convolve is significantly faster for large windows
         # mode='same' handles the padding/centering
         # saved my wee little surface from exploding
         output[idx, :] = fftconvolve(data, wavelet, mode='same')
