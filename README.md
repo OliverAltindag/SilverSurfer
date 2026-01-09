@@ -1,1 +1,50 @@
-This project is a wavelet-power deep learning model used for magnetic switchback edge detection. The model has currently been trained on only half of one data encounter, with the weights provided in the repo. The model will continue to be upgraded and will undergo further training; currently, it serves as a proof of concept and as a standalone architecture.
+# SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection
+
+**SilverSurfer** is a Deep Learning framework designed to detect **Magnetic Switchbacks** (rapid polarity reversals) in solar wind data collected by NASA's *Parker Solar Probe (PSP)*.
+
+Unlike traditional threshold-based algorithms, SilverSurfer uses a **Physics-Informed CNN** that analyzes the **Alfvenicity** (correlation between Magnetic Field $B$ and Plasma Velocity $V$) to identify events. This allows it to detect a "Hidden Population" of linear Alfvenic pulses that standard catalogs miss.
+
+## Key Features
+*   **Physics-Informed:** Learns the $B \propto V$ relationship, robust against noise.
+*   **Multi-Scale:** Uses Ricker and Haar Wavelets to see structures at multiple resolutions.
+*   **Morphological Invariance:** Proven to generalize from Encounter 2 (Reference) to Encounter 6 (Solar Maximum) with minimal fine-tuning.
+*   **Universal Clock:** Auto-syncs data to 14.5 Hz regardless of the original instrument sampling rate.
+
+## Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/SilverSurfer.git
+    cd SilverSurfer
+    ```
+
+2.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Data Requirements
+Place your `.cdf` files (PSP FIELDS and SWEAP L2/L3 data) in a `Data/` folder.
+*   **L2 MAG:** `psp_fld_l2_mag_RTN_...`
+*   **L3 SWEAP:** `psp_swp_spc_l3i_...`
+
+## Usage
+
+### Training / Fine-Tuning
+To train the model on your own events or fine-tune on a new encounter:
+
+```bash
+python train_silversurfer.py --data Data --csv your_event_list.csv --epochs 5
+```
+
+### Inference (Analysis)
+To validate the physics of detected events (generate the B-V Correlation Histogram):
+
+```bash
+python validate_physics.py
+```
+
+
+## Citation
+If you use this code in your research, please cite:
+> [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).
