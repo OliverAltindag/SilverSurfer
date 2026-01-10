@@ -37,14 +37,6 @@ To train the model on your own events or fine-tune on a new encounter:
 python train_silversurfer.py --data Data --csv your_event_list.csv --epochs 5
 ```
 
-### Inference (Analysis)
-To validate the physics of detected events (generate the B-V Correlation Histogram):
-
-```bash
-python validate_physics.py
-```
-
-
 ## Citation
 If you use this code in your research, please cite:
 > [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).]
