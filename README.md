@@ -49,6 +49,8 @@ The model operates on a synchronized 14.5 Hz grid. To find the exact Universal T
 
 Where `Window_Index` is the position of the detection in the model's output array, and `Stride` is the sliding window step size (fixed at 64). This yields the exact datetime down to the nanosecond.
 
+Additionally, the marked events are the edges of a switchback, and do not contain the entire event. 
+
 ## Citation
 If you use this code in your research, please cite:
 > [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).]
