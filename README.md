@@ -47,4 +47,4 @@ python validate_physics.py
 
 ## Citation
 If you use this code in your research, please cite:
-> [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).
+> [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).]
