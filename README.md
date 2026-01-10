@@ -34,7 +34,7 @@ Place your `.cdf` files (PSP FIELDS and SWEAP L2/L3 data) in a `Data/` folder.
 To train the model on your own events or fine-tune on a new encounter:
 
 ```bash
-python train_silversurfer.py --data Data --csv your_event_list.csv --epochs 5
+python train_silversurfer.py
 ```
 
 ## Citation
