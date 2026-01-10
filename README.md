@@ -38,7 +38,7 @@ python train_silversurfer.py
 ```
 
 ### Analysis
-however you please. The time stamps can be made universal to locate the events in other measurments
+Running the model, with the saved weights from training, will enable you to locate the switchbacks as detecter by the model and then analyze them however you please. The time stamps can be made universal to locate the events in other measurments
 
 To convert model detections into a **Universal Timestamp**:
 
