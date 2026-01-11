@@ -15,6 +15,8 @@ Unlike traditional threshold-based algorithms, SilverSurfer uses a Physics-Infor
 1.  Clone the repository:
     ```bash
     git clone https://github.com/OliverAltindag/SilverSurfer.git
+    ```
+    ```
     cd SilverSurfer
     ```
 
