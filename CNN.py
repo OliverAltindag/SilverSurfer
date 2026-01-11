@@ -80,7 +80,7 @@ def ricker_input_branch(input_tensor, dropout_rate, l2_reg, prefix):
                kernel_regularizer=l2(l2_reg), name=f'{prefix}_conv2')(x_skip)
     x = BatchNormalization(name=f'{prefix}_bn2')(x)
     
-    # ooling (Time = T/2, Scale = S/2)
+    # pooling (Time = T/2, Scale = S/2)
     x = MaxPooling2D((2, 2), name=f'{prefix}_pool1')(x)
     x = Dropout(dropout_rate, name=f'{prefix}_dropout2')(x)
     
@@ -117,6 +117,7 @@ def create_multi_input_switchback_cnn(
     ricker_shape,   # (n_scales, time_length, 1)
     haar_shape,     # (time_length, 1)
     dropout_rate=0.3,
+    l2_reg=1e-4,
     learning_rate=1e-5
 ):
     """
