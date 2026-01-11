@@ -57,7 +57,7 @@ BATCH_SIZE = 32    # Optimal for VRAM usage
 
 def main():
     print("\n" + "="*40)
-    print("   SILVERSURFER TRAINING WIZARD")
+    print("SILVERSURFER TRAINING")
     print("="*40 + "\n")
 
     # Inputs
