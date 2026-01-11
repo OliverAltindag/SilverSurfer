@@ -53,6 +53,8 @@ Where `Window_Index` is the position of the detection in the model's output arra
 
 Additionally, the marked events are the edges of a switchback, and do not contain the entire event. 
 
+Finally, the threshold for the model to consider an event a switchback can be modified depending on your needs, with the default resting at 0.5, which is essentially its confidence in the detection.
+
 ## Citation
 If you use this code in your research, please cite:
 > [Oliver Altindag, "SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection" (In Prep, 2026).]
