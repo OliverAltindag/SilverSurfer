@@ -1,5 +1,5 @@
 # SilverSurfer: A Wavelet-Based Deep Learning Architecture for Magnetic Switchback Detection
-### By Oliver Altindag (oaltindag28@amherst.edu)
+#### By Oliver Altindag (oaltindag28@amherst.edu)
 
 **SilverSurfer** is a Deep Learning framework designed to detect Magnetic Switchbacks (rapid polarity reversals) in solar wind data collected by NASA's *Parker Solar Probe (PSP)*.
 
